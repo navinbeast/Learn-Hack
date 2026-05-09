@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackLib — Cybersecurity Reading Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;
+  --border:#2a2a3a;--accent:#00ff88;--text:#e8e8f0;--muted:#6b6b80;
+  --danger:#ff4444;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
+
+.page{display:none;height:100vh;flex-direction:column;overflow:hidden;}
+.page.active{display:flex;}
+
+/* ── HOME ── */
+#home{align-items:center;justify-content:center;overflow-y:auto;}
+.home-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.home-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center;}
+.logo-mark{font-size:12px;letter-spacing:6px;text-transform:uppercase;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.logo-mark::before,.logo-mark::after{content:'';display:block;width:30px;height:1px;background:var(--accent);}
+.home-title{font-size:clamp(42px,8vw,96px);font-weight:800;line-height:0.9;letter-spacing:-3px;margin-bottom:16px;}
+.l1{color:var(--text);}.l2{color:transparent;-webkit-text-stroke:1px var(--accent);}
+.home-sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:32px;max-width:420px;line-height:1.7;}
+.progress-ring{margin-bottom:28px;position:relative;width:110px;height:110px;}
+.progress-ring svg{transform:rotate(-90deg);}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-pct{font-size:22px;font-weight:800;color:var(--accent);}
+.ring-lbl{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.home-stats{display:flex;gap:28px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;}
+.stat{text-align:center;}
+.stat-num{font-size:32px;font-weight:800;color:var(--accent);line-height:1;}
+.stat-label{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+.btn-primary{background:var(--accent);color:#000;border:none;padding:14px 36px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all 0.2s;text-transform:uppercase;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,255,136,0.3);}
+
+/* ── LIBRARY ── */
+#library{background:var(--bg);}
+.lib-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+.hdr-btn{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);cursor:pointer;letter-spacing:2px;background:none;border:none;white-space:nowrap;padding:0;}
+.hdr-btn:hover{opacity:0.7;}
+.lib-search{flex:1;min-width:140px;max-width:300px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:7px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;}
+.lib-search:focus{border-color:var(--accent);}
+.lib-search::placeholder{color:var(--muted);}
+.lib-prog{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.lbar{width:90px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.lbar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.4s;}
+.reset-all-btn{font-size:10px;padding:4px 8px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;border-radius:3px;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.reset-all-btn:hover{border-color:var(--danger);color:var(--danger);}
+.lib-body{flex:1;overflow-y:auto;padding:18px;}
+.phase-section{margin-bottom:32px;}
+.phase-label{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.pdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.pname{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.pcount{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.phase-reset-btn{font-size:9px;padding:3px 8px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;border-radius:3px;font-family:'JetBrains Mono',monospace;white-space:nowrap;margin-left:auto;}
+.phase-reset-btn:hover{border-color:var(--danger);color:var(--danger);}
+.books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;}
+.book-card{background:var(--surface);border:1px solid var(--border);border-left-width:3px;border-radius:5px;padding:12px 13px;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;gap:6px;position:relative;}
+.book-card:hover{background:var(--surface2);transform:translateY(-1px);}
+.book-card.read{opacity:0.6;}
+.stag{position:absolute;top:8px;right:8px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:1px;}
+.read .stag{color:var(--accent);}
+.reading .stag{color:#fb923c;animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.bnum{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.bname{font-size:12px;font-weight:600;line-height:1.4;padding-right:60px;}
+.bwhy{font-size:11px;color:var(--muted);line-height:1.5;}
+.bprog{height:2px;background:var(--border);border-radius:1px;overflow:hidden;margin-top:2px;}
+.bprog-fill{height:100%;border-radius:1px;transition:width 0.3s;}
+.book-reset-btn{align-self:flex-start;margin-top:4px;font-size:9px;padding:2px 7px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;border-radius:3px;font-family:'JetBrains Mono',monospace;white-space:nowrap;transition:all 0.15s;}
+.book-reset-btn:hover{border-color:var(--danger);color:var(--danger);}
+
+/* ── READER ── */
+#reader{background:#111;}
+.reader-header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+.reader-title{font-size:11px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;color:var(--text);}
+.nav-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;padding:5px 10px;border-radius:3px;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;transition:all 0.15s;white-space:nowrap;}
+.nav-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+.nav-btn:disabled{opacity:0.3;cursor:default;}
+.mark-btn{background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;padding:5px 10px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:10px;transition:all 0.15s;white-space:nowrap;}
+.mark-btn:hover{border-color:var(--accent);color:var(--accent);}
+.mark-btn.marked{border-color:var(--accent);color:var(--accent);background:rgba(0,255,136,0.07);}
+.rpos{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.rbar{width:60px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.rbar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;}
+
+/* ── PDF AREA ── */
+.pdf-wrap{flex:1;overflow:auto;background:#1e1e1e;display:flex;align-items:flex-start;justify-content:center;padding:16px;min-height:0;gap:12px;}
+.pdf-wrap.book-mode{background:#1a1015;}
+#pdf-canvas{box-shadow:0 4px 24px rgba(0,0,0,0.6);display:block;}
+#pdf-canvas2{box-shadow:0 4px 24px rgba(0,0,0,0.6);display:none;}
+.pdf-msg{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:300px;gap:14px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;}
+.spinner{width:36px;height:36px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-title{color:var(--danger);font-family:'Syne',sans-serif;font-weight:700;font-size:15px;}
+.ext-btn{background:var(--accent);color:#000;border:none;padding:9px 20px;border-radius:3px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;margin-top:6px;}
+
+/* ── PAGE CONTROLS ── */
+.page-controls{background:var(--surface);border-top:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+.pc-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;padding:5px 10px;border-radius:3px;font-size:12px;font-family:'JetBrains Mono',monospace;transition:all 0.15s;}
+.pc-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+.pc-btn:disabled{opacity:0.3;cursor:default;}
+.pc-info{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
+.pc-input{width:48px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;outline:none;}
+.pc-input:focus{border-color:var(--accent);}
+.zoom-wrap{margin-left:auto;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.z-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;padding:4px 9px;border-radius:3px;font-size:12px;transition:all 0.15s;white-space:nowrap;}
+.z-btn:hover{border-color:var(--accent);color:var(--accent);}
+.z-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,255,136,0.08);}
+.z-sep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+
+/* ── PROGRESS ROW ── */
+.prog-row{background:var(--surface);border-top:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.prog-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;}
+.prog-track{flex:1;height:7px;background:var(--border);border-radius:4px;cursor:pointer;position:relative;min-width:80px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;pointer-events:none;}
+.prog-thumb{position:absolute;top:50%;transform:translateY(-50%);width:15px;height:15px;background:var(--accent);border-radius:50%;border:2px solid var(--bg);cursor:grab;margin-left:-7px;}
+.prog-pct{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);white-space:nowrap;min-width:34px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 18px;border-radius:4px;z-index:9999;transition:transform 0.25s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ── MODALS ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:28px;max-width:340px;width:90%;text-align:center;}
+.modal h3{font-size:17px;margin-bottom:10px;color:var(--danger);}
+.modal p{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.6;font-family:'JetBrains Mono',monospace;}
+.modal-btns{display:flex;gap:10px;justify-content:center;}
+.btn-danger{background:var(--danger);color:#fff;border:none;padding:9px 22px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;border-radius:4px;}
+.btn-cancel{background:none;color:var(--muted);border:1px solid var(--border);padding:9px 22px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;cursor:pointer;border-radius:4px;}
+.btn-cancel:hover{color:var(--text);border-color:var(--muted);}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home" class="page active">
+  <div class="home-grid"></div>
+  <div class="home-content">
+    <div class="logo-mark">HackLib</div>
+    <h1 class="home-title"><div class="l1">CYBER</div><div class="l2">LIBRARY</div></h1>
+    <p class="home-sub">78 books · 6 phases · From beginner to red team operator.<br>One page at a time. Track your progress forever.</p>
+    <div class="progress-ring">
+      <svg width="110" height="110" viewBox="0 0 110 110">
+        <circle cx="55" cy="55" r="46" fill="none" stroke="#2a2a3a" stroke-width="7"/>
+        <circle id="home-ring" cx="55" cy="55" r="46" fill="none" stroke="#00ff88" stroke-width="7"
+          stroke-dasharray="289" stroke-dashoffset="289" stroke-linecap="round"
+          style="transition:stroke-dashoffset 1s ease"/>
+      </svg>
+      <div class="ring-text">
+        <div class="ring-pct" id="home-pct">0%</div>
+        <div class="ring-lbl">COMPLETE</div>
+      </div>
+    </div>
+    <div class="home-stats">
+      <div class="stat"><div class="stat-num">78</div><div class="stat-label">Total Books</div></div>
+      <div class="stat"><div class="stat-num" id="s-read">0</div><div class="stat-label">Completed</div></div>
+      <div class="stat"><div class="stat-num" id="s-reading">0</div><div class="stat-label">In Progress</div></div>
+      <div class="stat"><div class="stat-num">6</div><div class="stat-label">Phases</div></div>
+    </div>
+    <button class="btn-primary" onclick="showLibrary()">OPEN LIBRARY →</button>
+  </div>
+</div>
+
+<!-- LIBRARY -->
+<div id="library" class="page">
+  <div class="lib-header">
+    <button class="hdr-btn" onclick="showHome()">⬡ HACKLIB</button>
+    <input class="lib-search" id="lib-search" placeholder="Search books..." oninput="filterBooks(this.value)">
+    <div class="lib-prog">
+      <span id="lib-prog-txt">0 / 78</span>
+      <div class="lbar"><div class="lbar-fill" id="lbar-fill" style="width:0%"></div></div>
+      <button class="reset-all-btn" onclick="openModal('all')">RESET ALL</button>
+    </div>
+  </div>
+  <div class="lib-body" id="lib-body"></div>
+</div>
+
+<!-- READER -->
+<div id="reader" class="page">
+  <div class="reader-header">
+    <button class="hdr-btn" onclick="showLibrary()" style="font-size:11px">← LIB</button>
+    <button class="hdr-btn" onclick="showHome()" style="color:var(--muted);font-size:11px">⬡ HOME</button>
+    <div class="reader-title" id="r-title">—</div>
+    <button class="nav-btn" id="btn-prev" onclick="navBook(-1)">◀ PREV</button>
+    <button class="nav-btn" id="btn-next" onclick="navBook(1)">NEXT ▶</button>
+    <button class="mark-btn" id="mark-btn" onclick="toggleRead()">MARK READ</button>
+    <div class="rpos">
+      <span id="r-pos">1/79</span>
+      <div class="rbar"><div class="rbar-fill" id="rbar-fill" style="width:1%"></div></div>
+    </div>
+  </div>
+
+  <div class="pdf-wrap" id="pdf-wrap">
+    <div class="pdf-msg" id="pdf-msg">
+      <div class="spinner"></div><span>Loading PDF...</span>
+    </div>
+    <canvas id="pdf-canvas" style="display:none"></canvas>
+    <canvas id="pdf-canvas2" style="display:none"></canvas>
+  </div>
+
+  <div class="page-controls" id="page-controls" style="display:none">
+    <button class="pc-btn" id="pc-first" onclick="goPage(1)">«</button>
+    <button class="pc-btn" id="pc-prev" onclick="goPageStep(-1)">‹ Prev</button>
+    <span class="pc-info">Page</span>
+    <input class="pc-input" id="pc-input" type="number" min="1" value="1"
+      onchange="goPage(parseInt(this.value)||1)"
+      onkeydown="if(event.key==='Enter')goPage(parseInt(this.value)||1)">
+    <span class="pc-info" id="pc-total">of —</span>
+    <button class="pc-btn" id="pc-next" onclick="goPageStep(1)">Next ›</button>
+    <button class="pc-btn" id="pc-last" onclick="goPage(totPages)">»</button>
+    <div class="zoom-wrap">
+      <button class="z-btn" onclick="setZoom(curZoom-0.1)" title="Zoom out">−</button>
+      <span id="zoom-lbl" style="min-width:38px;text-align:center">100%</span>
+      <button class="z-btn" onclick="setZoom(curZoom+0.1)" title="Zoom in">+</button>
+      <div class="z-sep"></div>
+      <button class="z-btn" id="fit-btn" onclick="setZoom('fit')" title="Fit page to screen">Fit Page</button>
+      <button class="z-btn" id="fitw-btn" onclick="setZoom('fitw')" title="Fit width">Fit Width</button>
+      <button class="z-btn" id="book-btn" onclick="toggleBookMode()" title="2-page book view">📖 Book</button>
+    </div>
+  </div>
+
+  <div class="prog-row" id="prog-row" style="display:none">
+    <span class="prog-label">Reading progress:</span>
+    <div class="prog-track" id="prog-track" onclick="seekProg(event)">
+      <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+      <div class="prog-thumb" id="prog-thumb" style="left:0px"></div>
+    </div>
+    <span class="prog-pct" id="prog-pct">0%</span>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Reset Progress?</h3>
+    <p id="modal-body">This will clear all read status and progress. Cannot be undone.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-danger" onclick="confirmReset()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const RAW="https://raw.githubusercontent.com/Aayushjoshi28/Books-to-Learn-Hacking/master/";
+
+const PHASES=[
+  {id:1,c:"#00ff88",n:"Phase 1 — Absolute Foundation"},
+  {id:2,c:"#38bdf8",n:"Phase 2 — Security Mindset & Concepts"},
+  {id:3,c:"#a78bfa",n:"Phase 3 — Ethical Hacking & Kali Linux"},
+  {id:4,c:"#fb923c",n:"Phase 4 — Intermediate Specialisations"},
+  {id:5,c:"#f87171",n:"Phase 5 — Advanced Red Team & Exploit Dev"},
+  {id:6,c:"#f472b6",n:"Phase 6 — Telecom & SS7 Infrastructure"},
+];
+
+const BOOKS=[
+  {p:1,n:1,f:"Kurose J.F., Ross K.W. - Computer Networking A Top Down Approach 6th Edition - 2012.pdf",t:"Computer Networking: A Top Down Approach — Kurose & Ross",w:"TCP/IP, DNS, HTTP, routing, firewalls. The foundation of everything."},
+  {p:1,n:2,f:"CompTIA Linux+ Study Guide - Exam XK0-004 by Christine Bresnahan and Richard Blum.pdf",t:"CompTIA Linux+ Study Guide — Bresnahan & Blum",w:"Every hacking tool runs on Linux. Learn the OS before you open Kali."},
+  {p:1,n:3,f:"Python Crash Course, 2nd Edition - A Hands-On, Project-Based Introduction to Programming by Eric Matthes.pdf",t:"Python Crash Course, 2nd Edition — Eric Matthes",w:"Cleanest beginner Python book. Security scripting is Python-heavy."},
+  {p:1,n:4,f:"A Smarter Way to Learn Python - Learn it faster. Remember it longer. by Mark Myers.pdf",t:"A Smarter Way to Learn Python — Mark Myers",w:"Short daily exercises that lock in Python basics."},
+  {p:1,n:5,f:"Automate the Boring Stuff with Python - Practical Programming for Total Beginners by Al Sweigart.pdf",t:"Automate the Boring Stuff with Python — Al Sweigart",w:"Real scripts for real tasks. Makes Python feel immediately practical."},
+  {p:2,n:6,f:"Cybersecurity for Executives A Practical Guide.pdf",t:"Cybersecurity for Executives — Practical Guide",w:"Risk, policy, governance. Easy read that builds a strong mental model."},
+  {p:2,n:7,f:"Cybersecurity Illustrated_ Just - Peter Kim.pdf",t:"Cybersecurity Illustrated — Peter Kim",w:"Visual approach to cybersecurity. Great for visual learners."},
+  {p:2,n:8,f:"Kevin D. Mitnick & William L. Simon - The Art Of Deception.pdf",t:"The Art of Deception — Kevin Mitnick",w:"Social engineering — the most dangerous attack vector."},
+  {p:2,n:9,f:"Ghost in the Wires - My Adventures as the World_s Most Wanted Hacker by Kevin Mitnick.pdf",t:"Ghost in the Wires — Kevin Mitnick",w:"Reads like a thriller. Real-world hacking stories. Very motivating."},
+  {p:2,n:10,f:"Hackers Beware - The Ultimate Guide to Network Security by Eric Cole",t:"Hackers Beware — Eric Cole",w:"Network security guide covering attacker techniques with defensive view."},
+  {p:2,n:11,f:"Hacking, The Next Generation.pdf",t:"Hacking: The Next Generation",w:"Modern threats: web 2.0, social networks, blended attacks."},
+  {p:2,n:12,f:"Red Team - How to Succeed by Thinking Like the Enemy by Micah Zenko.pdf",t:"Red Team: Think Like the Enemy — Micah Zenko",w:"Strategic adversarial thinking. Shapes how you approach every other book."},
+  {p:3,n:13,f:"Linux Basics for Hackers - Getting Started with Networking, Scripting, and Security in Kali by OccupyTheWeb.pdf",t:"Linux Basics for Hackers — OccupyTheWeb",w:"Bridges Linux directly into hacking. Best starting point for Kali."},
+  {p:3,n:14,f:"Kali Linux Revealed - Mastering the Penetration Testing Distribution by Jim O_Gorman, Mati Aharoni, and Raphael Hertzog.pdf",t:"Kali Linux Revealed — Aharoni, O'Gorman & Hertzog",w:"Official Kali documentation. Understand the OS before using it as a weapon."},
+  {p:3,n:15,f:"KALILI~2.PDF",t:"Kali Linux — Jason Knox",w:"Beginner step-by-step: cybersecurity basics, ethical hacking, wireless pen testing."},
+  {p:3,n:16,f:"KALILI~3.PDF",t:"Kali Linux — Parker Johnson",w:"Complete beginner guide: Kali basics, wireless hacking, pen testing tools."},
+  {p:3,n:17,f:"Certified Ethical Hacker (CEH) Foundation Guide by Sagar Ajay Rahalkar.pdf",t:"CEH Foundation Guide — Sagar Rahalkar",w:"Core ethical hacking terms and phases. Best CEH starter."},
+  {p:3,n:18,f:"The Basics of Hacking and Penetration Testing - Ethical Hacking and Penetration Testing Made Easy by Patrick Engebretson.pdf",t:"The Basics of Hacking & Penetration Testing — Engebretson",w:"Best first pentest book. Step-by-step from recon to reporting."},
+  {p:3,n:19,f:"Hacking - Beginner to Expert Guide to Computer Hacking, Basic Security, and Penetration Testing (Computer Science Series) by James Patterson.pdf",t:"Hacking: Beginner to Expert Guide — James Patterson",w:"Broad intro to hacking concepts and basic security."},
+  {p:3,n:20,f:"Ethical Hacking With Kali Linux - Learn Fast How To Hack Like A Pro by HUGO HOFFMAN.pdf",t:"Ethical Hacking with Kali Linux — Hugo Hoffman",w:"Practical Kali usage. Common attack scenarios step by step."},
+  {p:3,n:21,f:"HA8CE7~1.PDF",t:"Hacking with Kali Linux — Axel Ross",w:"Step-by-step Linux pen testing basics, wireless networks, tools explained."},
+  {p:3,n:22,f:"HA3F37~1.PDF",t:"Hacking with Kali Linux: Advanced Guide — Darwin Growth",w:"Advanced cybersecurity: coding tools, networking, scripting with Kali."},
+  {p:3,n:23,f:"HA742E~1.PDF",t:"Hacking with Kali Linux — Julian James McKinnon",w:"Keylogger creation, MITM attacks, attack mapping with Kali."},
+  {p:3,n:24,f:"HAA4DD~1.PDF",t:"Hacking with Kali Linux — Jeremy Hack",w:"Ethical hacking tools guide using Kali cybersecurity basics."},
+  {p:3,n:25,f:"HAD2BF~1.PDF",t:"Hacking with Kali Linux — ITC Academy",w:"Comprehensive beginner guide with practical cybersecurity examples."},
+  {p:3,n:26,f:"HACKIN~4.PDF",t:"Hacking with Kali Linux — Stephen Fletcher",w:"Beginner guide: command line, pentest methodology, security tools."},
+  {p:3,n:27,f:"Hacking With Kali Linux - The Practical Beginner_s Guide to Learn How To Hack With Kali Linux in One Day Step-by-Step (#2020 Updated Version) by Steve Tudor.pdf",t:"Hacking with Kali Linux (2020) — Steve Tudor",w:"Updated Kali guide. Good for reinforcing tool usage."},
+  {p:3,n:28,f:"Hacking - Networking and Security (2 Books in 1 - Hacking with Kali Linux _ Networking for Beginners) by John Medicine.pdf",t:"Hacking: Networking & Security 2-in-1 — John Medicine",w:"Combines Kali hacking and networking basics for beginners."},
+  {p:3,n:29,f:"Penetration Testing A Hands-On Introduction to Hacking by Georgia Weidman.pdf",t:"Penetration Testing: A Hands-On Introduction — Georgia Weidman",w:"Best lab-based pentest book. VMs, Metasploit, real systems. Essential."},
+  {p:3,n:30,f:"Nmap Cookbook - The Fat-free Guide to Network Scanning by Nicholas Marsh.pdf",t:"Nmap Cookbook — Nicholas Marsh",w:"Nmap is the #1 scanning tool. Learn every command."},
+  {p:3,n:31,f:"KALILI~1.PDF",t:"Kali Linux Wireless Pen Testing Beginner's Guide — Ramachandran & Buchanan",w:"The definitive wireless security book. Survey and attack Wi-Fi with Kali."},
+  {p:3,n:32,f:"KALILI~4.PDF",t:"Kali Linux Wireless Pen Testing Cookbook — Sean-Philip Oriyano",w:"Recipe-style Wi-Fi and Bluetooth vulnerability testing."},
+  {p:3,n:33,f:"Penetration Testing - 3 Manuscripts—Wireless Hacking, Tor and the Dark Net, and Powershell by Logan Styles.pdf",t:"Penetration Testing: 3 Manuscripts — Logan Styles",w:"Wireless attacks, dark net usage, and PowerShell scripting."},
+  {p:3,n:34,f:"Google Hacks - 100 Industrial-Strength Tips _ Tools 1st Edition by Tara Calishain and Rael Dornfest.pdf",t:"Google Hacks — Calishain & Dornfest",w:"Google dorking and OSINT. Finding exposed data is a core recon skill."},
+  {p:3,n:35,f:"CEH v10 Certified Ethical Hacker Study Guide by Ric Messier.pdf",t:"CEH v10 Study Guide — Ric Messier",w:"Full CEH theory. Read after hands-on practice so theory actually sticks."},
+  {p:3,n:36,f:"CEH Certified Ethical Hacker All-in-One Exam Guide, Fourth Edition by Matt Walker.pdf",t:"CEH All-in-One Exam Guide, 4th Ed. — Matt Walker",w:"Most comprehensive CEH exam prep. Use for final revision."},
+  {p:4,n:37,f:"Metasploit - The Penetration Tester_s Guide by David Kennedy.pdf",t:"Metasploit: The Penetration Tester's Guide — David Kennedy",w:"Master the most powerful exploitation framework. Essential for all pentesters."},
+  {p:4,n:38,f:"The Web Application Hacker_s Handbook - Finding and Exploiting Security Flaws, 2nd Edition by Dafydd Stuttard, Marcus Pinto.pdf",t:"The Web Application Hacker's Handbook, 2nd Ed. — Stuttard & Pinto",w:"Bible of web hacking. XSS, SQLi, CSRF, auth flaws."},
+  {p:4,n:39,f:"Real-World Bug Hunting - A Field Guide to Web Hacking by Peter Yaworski.pdf",t:"Real-World Bug Hunting — Peter Yaworski",w:"Real HackerOne reports. See how professionals hunt bugs."},
+  {p:4,n:40,f:"The Browser Hacker_s Handbook by Wade Alcorn, Christian Frichot and Michele Orru.pdf",t:"The Browser Hacker's Handbook — Alcorn, Frichot & Orrú",w:"Browser attacks: XSS, BeEF, client-side exploitation."},
+  {p:4,n:41,f:"The Database Hacker_s Handbook - Defending Database Servers by David Litchfield, Chris Anley, John Heasman and Bill Grindlay.pdf",t:"The Database Hacker's Handbook — Litchfield, Anley et al.",w:"SQL injection, stored procedures, privilege escalation in databases."},
+  {p:4,n:42,f:"Black Hat Python - Python Programming for Hackers and Pentesters by Justin Seitz.pdf",t:"Black Hat Python — Justin Seitz",w:"Build hacking tools in Python: sniffers, keyloggers, trojans."},
+  {p:4,n:43,f:"Python for Offensive PenTest - A practical guide to ethical hacking and penetration testing using Python by Hussam Khrais .pdf",t:"Python for Offensive PenTest — Hussam Khrais",w:"Deeper offensive Python. Read after Black Hat Python."},
+  {p:4,n:44,f:"Violent Python - A Cookbook for Hackers, Forensic Analysts, Penetration Testers and Security Engineers by TJ O_Connor.pdf",t:"Violent Python — TJ O'Connor",w:"Python for forensics, offensive tools, network analysis."},
+  {p:4,n:45,f:"Hacking Exposed - Network Security Secrets _ Solutions, Third Edition (Hacking Exposed) by Joel Scambray, Stuart McClure and George Kurtz.pdf",t:"Hacking Exposed: Network Security — Scambray, McClure & Kurtz",w:"Classic network hacking bible. Attacks AND defences side by side."},
+  {p:4,n:46,f:"Hacking Exposed Cisco Networks - Cisco Security Secrets _ Solutions by Andrew Vladimirov, Konstantin Gavrilenko and Andrei Mikhailovsky.pdf",t:"Hacking Exposed Cisco Networks — Vladimirov et al.",w:"Cisco-specific attacks: routers, switches, IOS exploits."},
+  {p:4,n:47,f:"Hacking VoIP Exposed by David Endler, TippingPoint, Mark Collier and SecureLogix.pdf",t:"Hacking VoIP Exposed — Endler & Collier",w:"VoIP attacks: SIP, RTP, call eavesdropping, toll fraud."},
+  {p:4,n:48,f:"Mobile Application Penetration Testing by Vijay Kumar Velu.pdf",t:"Mobile Application Penetration Testing — Vijay Kumar Velu",w:"Android and iOS app testing. Fast-growing specialisation."},
+  {p:4,n:49,f:"The Mobile Application Hacker_s Handbook by Dominic Chell, Tyrone Erasmus, Shaun Colley and Ollie Whitehouse.pdf",t:"The Mobile Application Hacker's Handbook — Chell, Erasmus et al.",w:"Deeper mobile exploitation. Read after Velu for advanced methods."},
+  {p:4,n:50,f:"The Mac Hacker_s Handbook by Charlie Miller and Dino Dai Zovi.pdf",t:"The Mac Hacker's Handbook — Charlie Miller & Dino Dai Zovi",w:"macOS vulnerabilities and security model weaknesses."},
+  {p:4,n:51,f:"Hacking Gmail by Ben Hammersley.pdf",t:"Hacking Gmail — Ben Hammersley",w:"Gmail security, account manipulation, email-based attacks."},
+  {p:4,n:52,f:"IRC Hacks by Paul Mutton.pdf",t:"IRC Hacks — Paul Mutton",w:"IRC protocol manipulation and bots. Old-school C2 channels."},
+  {p:4,n:53,f:"Social media hacking - Hack Facebook,what's app,instagram,twitter accounts by Shekhar Mishra.pdf",t:"Social Media Hacking — Shekhar Mishra",w:"Account attacks, phishing, social engineering on major platforms."},
+  {p:4,n:54,f:"Radware_s DDoS Handbook - The Ultimate Guide to Everything You Need to Know about DDoS Attacks by Radware.pdf",t:"Radware's DDoS Handbook — Radware",w:"Everything about DDoS: volumetric, application layer, mitigation."},
+  {p:4,n:55,f:"Practical Lock Picking - A Physical Penetration Tester_s Training Guide by Deviant Ollam.pdf",t:"Practical Lock Picking — Deviant Ollam",w:"Physical penetration testing. Required for complete red teamers."},
+  {p:4,n:56,f:"Cybersecurity_ Managing Systems, Conducting Testing, and Investigating Intrusions - Thomas J. Mowbray.pdf",t:"Cybersecurity: Managing Systems — Mowbray",w:"Management, testing, incident response. For analyst or lead roles."},
+  {p:5,n:57,f:"Hacking - The Art of Exploitation, 2nd Edition by Jon Erickson.pdf",t:"Hacking: The Art of Exploitation, 2nd Ed. — Jon Erickson",w:"Most technical book in the list. C, assembly, buffer overflows from scratch."},
+  {p:5,n:58,f:"The Shellcoder_s Handbook - Discovering and Exploiting Security Holes by Chris Anley, John Heasman, Felix Lindner and Gerardo Richarte.pdf",t:"The Shellcoder's Handbook — Anley, Heasman et al.",w:"Deep exploit writing: overflows, heap attacks, format strings."},
+  {p:5,n:59,f:"Advanced Penetration Testing - Hacking the World_s Most Secure Networks by Wil Allsopp.pdf",t:"Advanced Penetration Testing — Wil Allsopp",w:"Targets hardened networks. Custom C2, covert channels, APT simulation."},
+  {p:5,n:60,f:"Mastering Kali Linux for Advanced Penetration Testing by Robert W. Beggs.pdf",t:"Mastering Kali Linux for Advanced Pen Testing — Robert Beggs",w:"Advanced Kali: evasion, persistence, pivoting, advanced recon."},
+  {p:5,n:61,f:"The Hacker Playbook 3 - Practical Guide To Penetration Testing by Peter Kim.pdf",t:"The Hacker Playbook 3 — Peter Kim",w:"Red team tactics, custom attack chains, lateral movement."},
+  {p:5,n:62,f:"RTFM - Red Team Field Manual [PDF] [01QLT].pdf",t:"RTFM: Red Team Field Manual — PDF Edition",w:"Command reference cheat sheet. Look things up fast mid-operation."},
+  {p:5,n:63,f:"Rtfm - Red Team Field Manual 1.0 Edition by Ben Clark.pdf",t:"RTFM: Red Team Field Manual 1.0 — Ben Clark",w:"Original RTFM. Different content from PDF edition — keep both."},
+  {p:5,n:64,f:"RTFM - Red Team Field Manual v3.pdf",t:"RTFM: Red Team Field Manual v3",w:"Most updated RTFM. Use as primary reference for red team work."},
+  {p:5,n:65,f:"Practical Anti-virus Evasion by Daniel Sauder.pdf",t:"Practical Anti-Virus Evasion — Daniel Sauder",w:"Understand AV and EDR, then learn exactly how to bypass them."},
+  {p:5,n:66,f:"The IoT Hacker_s Handbook - A Practical Guide to Hacking the Internet of Things by Aditya Gupta.pdf",t:"The IoT Hacker's Handbook — Aditya Gupta",w:"Hardware hacking, firmware analysis, IoT protocol attacks."},
+  {p:5,n:67,f:"Android Hacker_s Handbook by Joshua J. Drake, Zach Lanier, Collin Mulliner, Pau Oliva Fora, Stephen A. Ridley and Georg Wicherski.pdf",t:"Android Hacker's Handbook — Drake, Lanier et al.",w:"Deep Android OS exploitation: kernel, native code, app layer."},
+  {p:5,n:68,f:"iOS Hacker_s Handbook by Charlie Miller, Dion Blazakis, Dino DaiZovi, Stefan Esser, Vincenzo Iozzo and Ralf-Philipp Weinmann.pdf",t:"iOS Hacker's Handbook — Miller, Blazakis et al.",w:"iOS exploits, sandbox escapes, kernel vulnerabilities."},
+  {p:5,n:69,f:"Cybersecurity_ Managing Systems, Conducting Testing, and Investigating Intrusions - Thomas J. Mowbray.pdf",t:"Cybersecurity: Investigating Intrusions — Mowbray (revisit)",w:"Return to incident response chapters with Phase 5 knowledge."},
+  {p:6,n:70,f:"Signaling System 7 (SS7).pdf",t:"Signaling System 7 (SS7) — Foundational Text",w:"Start telecom phase here. What SS7 is and how the protocol stack works."},
+  {p:6,n:71,f:"SIGNALING SYSTEM 7 (SS7) - SECURITY REPORT.pdf",t:"SS7 — Security Report",w:"Comprehensive vulnerability assessment. Core telecom security reference."},
+  {p:6,n:72,f:"SS7 - Locate. Track. Manipulate. by Tobias Engel.pdf",t:"SS7: Locate. Track. Manipulate. — Tobias Engel",w:"Famous CCC presentation. Real-time phone tracking and call interception."},
+  {p:6,n:73,f:"Stealthy SS7 Attacks by Sergey Puzankov.pdf",t:"Stealthy SS7 Attacks — Sergey Puzankov",w:"Advanced SS7 attacks designed to evade detection systems."},
+  {p:6,n:74,f:"Hacking mobile network via SS7 - interception, shadowing and more by Dmitry Kurbatov.pdf",t:"Hacking Mobile Network via SS7 — Dmitry Kurbatov",w:"Practical SS7: call interception, SMS hijacking, location tracking."},
+  {p:6,n:75,f:"Cellular location tracking attacks using signalling protocols by Aalto University.pdf",t:"Cellular Location Tracking via Signalling — Aalto University",w:"Academic research on SS7 and Diameter protocol location tracking."},
+  {p:6,n:76,f:"SCTPscan - Finding entry points to SS7 Networks _ Telecommunications Backbones by Philippe Langlois.pdf",t:"SCTPscan: Finding Entry Points to SS7 — Philippe Langlois",w:"Scanning for exposed SS7 network entry points."},
+  {p:6,n:77,f:"TELECO~2.PDF",t:"Getting in the SS7 Kingdom — Philippe Langlois, P1 Security",w:"How attackers find and exploit SS7 walled garden entry points."},
+  {p:6,n:78,f:"Telecommunications Infrastructure - Security SS7 Signalling Security by Philippe Langlois.pdf",t:"Telecom Infrastructure Security: SS7 Signalling — Philippe Langlois",w:"Defence-focused SS7 security. How to harden telecom infrastructure."},
+  {p:6,n:79,f:"Vulnerabilities of signaling system number 7 (SS7) to cyber attacks and how to mitigate against these vulnerabilities. by Bob Kamwendo.pdf",t:"Vulnerabilities of SS7 & Mitigation — Bob Kamwendo",w:"Academic review of SS7 weaknesses with mitigation strategies."},
+];
+
+// ── STATE ──
+let ST={read:{},reading:{},scroll:{},page:{}};
+let curIdx=0,pdfDoc=null,curPage=1,totPages=0,curZoom=1.0,rendering=false,bookMode=false,bookFitMode='fit';
+let pendingReset=null; // 'all' or phase id number
+
+function loadST(){try{const s=localStorage.getItem('hl4');if(s)ST=JSON.parse(s);}catch(e){}}
+function saveST(){try{localStorage.setItem('hl4',JSON.stringify(ST));}catch(e){}}
+
+// ── NAVIGATION ──
+function showHome(){
+  ['home','library','reader'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('home').classList.add('active');
+  updateHome();
+}
+function showLibrary(){
+  ['home','library','reader'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('library').classList.add('active');
+  document.getElementById('lib-search').value='';
+  renderLib('');
+}
+function showReader(idx){
+  curIdx=idx;
+  ['home','library','reader'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('reader').classList.add('active');
+  loadBook(idx);
+}
+
+// ── HOME ──
+function updateHome(){
+  const rc=Object.values(ST.read).filter(Boolean).length;
+  const ing=Object.keys(ST.reading).filter(k=>ST.reading[k]&&!ST.read[k]).length;
+  const pct=Math.round(rc/78*100);
+  document.getElementById('s-read').textContent=rc;
+  document.getElementById('s-reading').textContent=ing;
+  document.getElementById('home-pct').textContent=pct+'%';
+  document.getElementById('home-ring').style.strokeDashoffset=289-(289*pct/100);
+}
+
+// ── LIBRARY ──
+function renderLib(q){
+  const body=document.getElementById('lib-body');
+  body.innerHTML='';
+  const ql=(q||'').toLowerCase();
+  const rc=Object.values(ST.read).filter(Boolean).length;
+  document.getElementById('lib-prog-txt').textContent=rc+' / 78';
+  document.getElementById('lbar-fill').style.width=(rc/78*100)+'%';
+
+  PHASES.forEach(ph=>{
+    const pb=BOOKS.filter(b=>b.p===ph.id&&(!ql||b.t.toLowerCase().includes(ql)||b.w.toLowerCase().includes(ql)));
+    if(!pb.length) return;
+    const rp=pb.filter(b=>ST.read[b.n]).length;
+    const sec=document.createElement('div');
+    sec.className='phase-section';
+    sec.innerHTML=`
+      <div class="phase-label">
+        <div class="pdot" style="background:${ph.c}"></div>
+        <div class="pname" style="color:${ph.c}">${ph.n}</div>
+        <span class="pcount">${rp}/${pb.length} read</span>
+        <button class="phase-reset-btn" onclick="openModal(${ph.id})">Reset Phase</button>
+      </div>
+      <div class="books-grid" id="g${ph.id}"></div>`;
+    body.appendChild(sec);
+    const grid=sec.querySelector('#g'+ph.id);
+    pb.forEach(b=>{
+      const ir=!!ST.read[b.n],ing=!!ST.reading[b.n]&&!ir,sc=ST.scroll[b.n]||0;
+      const card=document.createElement('div');
+      card.className=`book-card${ir?' read':''}${ing?' reading':''}`;
+      card.style.borderLeftColor=ir?ph.c:ph.c+'55';
+      card.innerHTML=`<span class="stag">${ir?'✓ READ':ing?'● READING':''}</span>
+        <div class="bnum">#${b.n} · Phase ${b.p}</div>
+        <div class="bname">${b.t}</div>
+        <div class="bwhy">${b.w}</div>
+        <div class="bprog"><div class="bprog-fill" style="width:${sc}%;background:${ph.c}"></div></div>
+        <button class="book-reset-btn" onclick="resetBook(event,${b.n})">↺ Reset</button>`;
+      card.onclick=()=>showReader(BOOKS.indexOf(b));
+      grid.appendChild(card);
+    });
+  });
+}
+function filterBooks(q){renderLib(q);}
+
+// ── MODAL ──
+function openModal(target){
+  pendingReset=target;
+  const overlay=document.getElementById('modal-overlay');
+  const title=document.getElementById('modal-title');
+  const body=document.getElementById('modal-body');
+  if(target==='all'){
+    title.textContent='Reset All Progress?';
+    body.textContent='This will clear read status and progress for ALL 78 books. Cannot be undone.';
+  } else {
+    const ph=PHASES.find(p=>p.id===target);
+    title.textContent=`Reset ${ph?ph.n:'Phase'}?`;
+    body.textContent=`This will clear read status and progress for all books in this phase only. Cannot be undone.`;
+  }
+  overlay.classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  pendingReset=null;
+}
+function confirmReset(){
+  if(pendingReset==='all'){
+    ST={read:{},reading:{},scroll:{},page:{}};
+    saveST(); closeModal();
+    showToast('All progress reset');
+    renderLib(''); updateHome();
+  } else if(pendingReset!==null){
+    const phId=pendingReset;
+    const phBooks=BOOKS.filter(b=>b.p===phId);
+    phBooks.forEach(b=>{
+      delete ST.read[b.n];
+      delete ST.reading[b.n];
+      delete ST.scroll[b.n];
+      delete ST.page[b.n];
+    });
+    saveST(); closeModal();
+    const ph=PHASES.find(p=>p.id===phId);
+    showToast(`${ph?ph.n:'Phase'} progress reset`);
+    renderLib(document.getElementById('lib-search').value||'');
+    updateHome();
+  }
+}
+
+// ── READER ──
+function loadBook(idx){
+  const b=BOOKS[idx]; if(!b) return;
+  ST.reading[b.n]=true; saveST();
+  pdfDoc=null; curPage=ST.page[b.n]||1; rendering=false;
+  bookMode=false;
+  document.getElementById('book-btn').classList.remove('active');
+  document.getElementById('pdf-wrap').classList.remove('book-mode');
+
+  document.getElementById('r-title').textContent=b.t;
+  document.getElementById('r-pos').textContent=b.n+'/79';
+  document.getElementById('rbar-fill').style.width=(b.n/79*100)+'%';
+  document.getElementById('btn-prev').disabled=(idx===0);
+  document.getElementById('btn-next').disabled=(idx===BOOKS.length-1);
+  document.getElementById('page-controls').style.display='none';
+  document.getElementById('prog-row').style.display='none';
+  document.getElementById('zoom-lbl').textContent='100%';
+  curZoom=1.0;
+  updateMarkBtn(b);
+  updateProgUI(ST.scroll[b.n]||0);
+
+  const c1=document.getElementById('pdf-canvas');
+  const c2=document.getElementById('pdf-canvas2');
+  c1.style.display='none'; c2.style.display='none';
+  showMsg('<div class="spinner"></div><span>Loading PDF...</span>');
+
+  const url=RAW+encodeURIComponent(b.f);
+  pdfjsLib.getDocument({url,withCredentials:false}).promise.then(pdf=>{
+    pdfDoc=pdf; totPages=pdf.numPages;
+    if(curPage>totPages) curPage=1;
+    document.getElementById('pc-total').textContent='of '+totPages;
+    document.getElementById('pc-input').max=totPages;
+    document.getElementById('page-controls').style.display='flex';
+    document.getElementById('prog-row').style.display='flex';
+    hideMsg();
+    // Auto fit page on load
+    setZoom('fit');
+  }).catch(()=>{
+    const url2=RAW+encodeURIComponent(b.f);
+    showMsg(`<div class="err-title">Could not load PDF</div>
+      <p style="color:var(--muted);font-size:11px;max-width:340px;line-height:1.6">CORS restriction on this file.</p>
+      <button class="ext-btn" onclick="window.open('${url2}','_blank')">Open in New Tab ↗</button>`);
+  });
+}
+
+// ── ZOOM ──
+function calcFitScale(page, mode){
+  const wrap = document.getElementById('pdf-wrap');
+  // Use scrollWidth/scrollHeight of wrap minus padding (16px each side = 32px)
+  const ww = wrap.clientWidth  - 32;
+  const wh = wrap.clientHeight - 32;
+  const vp0 = page.getViewport({scale: 1});
+
+  if(mode === 'fitw'){
+    // Fill the full available width — vertical scroll is fine
+    return ww / vp0.width;
+  } else {
+    // Fit entire page with no scrolling needed — constrain both axes
+    const sw = ww / vp0.width;
+    const sh = wh / vp0.height;
+    return Math.min(sw, sh);
+  }
+}
+
+function calcBookScale(page){
+  // For book mode: two pages side by side with gap
+  const wrap=document.getElementById('pdf-wrap');
+  const ww=(wrap.clientWidth-60)/2; // half width minus gap and padding
+  const wh=wrap.clientHeight-40;
+  const vp0=page.getViewport({scale:1});
+  const sw=ww/vp0.width;
+  const sh=wh/vp0.height;
+  return Math.min(sw,sh);
+}
+
+function setZoom(z){
+  if(!pdfDoc){
+    if(typeof z==='number'){ curZoom=Math.max(0.05,Math.min(5.0,z)); document.getElementById('zoom-lbl').textContent=Math.round(curZoom*100)+'%'; }
+    return;
+  }
+  if(z==='fit'||z==='fitw'){
+    document.getElementById('fit-btn').classList.toggle('active', z==='fit');
+    document.getElementById('fitw-btn').classList.toggle('active', z==='fitw');
+    if(bookMode){
+      // In book mode, renderBookSpread always auto-fits both pages.
+      // fitw = allow vertical scroll (use full width per slot)
+      // fit  = constrain both axes
+      bookFitMode = z; // store so renderBookSpread can use it
+      renderPage(curPage);
+    } else {
+      pdfDoc.getPage(curPage).then(page=>{
+        curZoom = calcFitScale(page, z);
+        document.getElementById('zoom-lbl').textContent = Math.round(curZoom*100)+'%';
+        renderPage(curPage);
+      });
+    }
+    return;
+  }
+  // Manual zoom — no min limit so user can go very small
+  curZoom=Math.max(0.05,Math.min(5.0,z));
+  document.getElementById('zoom-lbl').textContent=Math.round(curZoom*100)+'%';
+  document.getElementById('fit-btn').classList.remove('active');
+  document.getElementById('fitw-btn').classList.remove('active');
+  renderPage(curPage);
+}
+
+// ── BOOK MODE ──
+function toggleBookMode(){
+  bookMode=!bookMode;
+  bookFitMode='fit';
+  const btn=document.getElementById('book-btn');
+  const wrap=document.getElementById('pdf-wrap');
+  btn.classList.toggle('active',bookMode);
+  wrap.classList.toggle('book-mode',bookMode);
+  if(pdfDoc) setZoom('fit');
+}
+
+// ── RENDER ──
+function renderPage(num){
+  if(!pdfDoc||rendering) return;
+  rendering=true;
+  num=Math.max(1,Math.min(totPages,num));
+  curPage=num;
+  document.getElementById('pc-input').value=num;
+  updatePcBtns();
+
+  if(bookMode){
+    renderBookSpread(num);
+    return;
+  }
+
+  pdfDoc.getPage(num).then(page=>{
+    const wrap=document.getElementById('pdf-wrap');
+    const c1=document.getElementById('pdf-canvas');
+    const c2=document.getElementById('pdf-canvas2');
+
+    // Clear any CSS size overrides set by book mode
+    c1.style.width='';  c1.style.height='';
+    c2.style.width='';  c2.style.height='';
+    c2.style.display='none';
+
+    const vp=page.getViewport({scale: curZoom});
+    c1.width=vp.width; c1.height=vp.height;
+
+    page.render({canvasContext:c1.getContext('2d'),viewport:vp}).promise.then(()=>{
+      c1.style.display='block';
+      wrap.scrollTop=0; wrap.scrollLeft=0;
+      rendering=false;
+      savePageProgress(num);
+    }).catch(()=>{rendering=false;});
+  }).catch(()=>{rendering=false;});
+}
+
+function renderBookSpread(num){
+  // Always start on an odd page (left side of spread)
+  const leftNum = (num % 2 === 0) ? num - 1 : num;
+  const rightNum = leftNum + 1;
+  const hasRight = rightNum <= totPages;
+
+  curPage = leftNum;
+  document.getElementById('pc-input').value = leftNum;
+  updatePcBtns();
+
+  const leftPromise  = pdfDoc.getPage(leftNum);
+  const rightPromise = hasRight ? pdfDoc.getPage(rightNum) : Promise.resolve(null);
+
+  Promise.all([leftPromise, rightPromise]).then(([lpage, rpage]) => {
+    const wrap = document.getElementById('pdf-wrap');
+    const c1 = document.getElementById('pdf-canvas');
+    const c2 = document.getElementById('pdf-canvas2');
+
+    // Clear any leftover style overrides
+    c1.style.width=''; c1.style.height='';
+    c2.style.width=''; c2.style.height='';
+
+    const totalW = wrap.clientWidth  - 60;
+    const availH = wrap.clientHeight - 40;
+
+    // Each page gets exactly half the total available width as its slot
+    const slotW = totalW / 2;
+
+    // Natural dimensions at scale=1
+    const lvp0 = lpage.getViewport({scale:1});
+    const rvp0 = rpage ? rpage.getViewport({scale:1}) : {width: lvp0.width, height: lvp0.height};
+
+    // Calculate the scale that would make each page FILL its slot width exactly
+    const lScaleW = slotW / lvp0.width;
+    const rScaleW = slotW / rvp0.width;
+
+    if(bookFitMode === 'fitw'){
+      renderTwoPages(lpage, rpage, lScaleW, rScaleW, c1, c2, wrap, leftNum, rpage !== null);
+    } else {
+      const lScaleH = availH / lvp0.height;
+      const rScaleH = availH / rvp0.height;
+      const lScale = Math.min(lScaleW, lScaleH);
+      const rScale = Math.min(rScaleW, rScaleH);
+      const scale = Math.min(lScale, rScale);
+      renderTwoPages(lpage, rpage, scale, scale, c1, c2, wrap, leftNum, rpage !== null);
+    }
+
+  }).catch(()=>{ rendering = false; });
+}
+
+function renderTwoPages(lpage, rpage, lScale, rScale, c1, c2, wrap, leftNum, hasRight){
+  const lvp = lpage.getViewport({scale: lScale});
+  c1.width  = lvp.width;
+  c1.height = lvp.height;
+  const renderLeft = lpage.render({canvasContext: c1.getContext('2d'), viewport: lvp}).promise;
+
+  let renderRight = Promise.resolve();
+  if(hasRight && rpage){
+    const rvp = rpage.getViewport({scale: rScale});
+    c2.width  = rvp.width;
+    c2.height = rvp.height;
+    renderRight = rpage.render({canvasContext: c2.getContext('2d'), viewport: rvp}).promise;
+  } else {
+    c2.style.display = 'none';
+  }
+
+  Promise.all([renderLeft, renderRight]).then(()=>{
+    c1.style.display = 'block';
+    if(hasRight && rpage) c2.style.display = 'block';
+    wrap.scrollTop  = 0;
+    wrap.scrollLeft = 0;
+    rendering = false;
+    savePageProgress(leftNum);
+    document.getElementById('zoom-lbl').textContent = Math.round(lScale * 100) + '%';
+  }).catch(()=>{ rendering = false; });
+}
+
+function savePageProgress(num){
+  const b=BOOKS[curIdx]; if(!b) return;
+  ST.page[b.n]=num; 
+  const pct=Math.round(((num-1)/Math.max(totPages-1,1))*100);
+  ST.scroll[b.n]=pct; saveST();
+  updateProgUI(pct);
+}
+
+function resetBook(e, bookNum){
+  e.stopPropagation(); // prevent opening the book
+  delete ST.read[bookNum];
+  delete ST.reading[bookNum];
+  delete ST.scroll[bookNum];
+  delete ST.page[bookNum];
+  saveST();
+  const b = BOOKS.find(b=>b.n===bookNum);
+  showToast(`Reset: ${b?b.t.split('—')[0].trim():'Book '+bookNum}`);
+  renderLib(document.getElementById('lib-search').value||'');
+  updateHome();
+}
+
+function goPageStep(dir){
+  // dir = +1 forward, -1 backward
+  const step = bookMode ? 2 : 1;
+  const target = curPage + (dir * step);
+  goPage(target);
+}
+
+function goPage(n){
+  n = parseInt(n) || 1;
+  n = Math.max(1, Math.min(totPages, n));
+  if(bookMode){
+    // Snap to nearest odd page (left side of spread)
+    if(n % 2 === 0) n = Math.max(1, n - 1);
+  }
+  if(n === curPage && !rendering) return;
+  renderPage(n);
+}
+
+function updatePcBtns(){
+  const step=bookMode?2:1;
+  document.getElementById('pc-prev').disabled=(curPage<=1);
+  document.getElementById('pc-first').disabled=(curPage<=1);
+  document.getElementById('pc-next').disabled=(curPage>=totPages-(bookMode?1:0));
+  document.getElementById('pc-last').disabled=(curPage>=totPages-(bookMode?1:0));
+}
+
+// ── PROGRESS UI ──
+function updateProgUI(pct){
+  pct=Math.max(0,Math.min(100,Math.round(pct)));
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  const track=document.getElementById('prog-track');
+  const tw=track.clientWidth-15;
+  document.getElementById('prog-thumb').style.left=Math.max(0,(pct/100)*tw)+'px';
+}
+
+function seekProg(e){
+  const track=document.getElementById('prog-track');
+  const rect=track.getBoundingClientRect();
+  const pct=Math.min(100,Math.max(0,((e.clientX-rect.left)/rect.width)*100));
+  updateProgUI(pct);
+  const b=BOOKS[curIdx]; if(!b)return;
+  ST.scroll[b.n]=Math.round(pct); saveST();
+  if(pdfDoc&&totPages>1){
+    let pg=Math.max(1,Math.min(totPages,Math.round((pct/100)*(totPages-1))+1));
+    if(bookMode&&pg%2===0) pg=Math.max(1,pg-1);
+    if(pg!==curPage) renderPage(pg);
+  }
+  showToast('Progress: '+Math.round(pct)+'%');
+}
+
+// ── HELPERS ──
+function showMsg(html){
+  const m=document.getElementById('pdf-msg');
+  m.style.display='flex'; m.innerHTML=html;
+  document.getElementById('pdf-canvas').style.display='none';
+  document.getElementById('pdf-canvas2').style.display='none';
+}
+function hideMsg(){ document.getElementById('pdf-msg').style.display='none'; }
+
+function updateMarkBtn(b){
+  const btn=document.getElementById('mark-btn');
+  if(ST.read[b.n]){btn.textContent='✓ COMPLETED';btn.classList.add('marked');}
+  else{btn.textContent='MARK READ';btn.classList.remove('marked');}
+}
+function toggleRead(){
+  const b=BOOKS[curIdx];if(!b)return;
+  ST.read[b.n]=!ST.read[b.n];
+  if(ST.read[b.n])ST.scroll[b.n]=100;
+  saveST();updateMarkBtn(b);
+  showToast(ST.read[b.n]?'✓ Marked as completed!':'Removed from completed');
+}
+function navBook(d){
+  const ni=curIdx+d;
+  if(ni<0||ni>=BOOKS.length)return;
+  showReader(ni);
+}
+
+let tt;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  const readerOn=document.getElementById('reader').classList.contains('active');
+  if(!readerOn||e.target.tagName==='INPUT') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown') goPageStep(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') goPageStep(-1);
+  if(e.key==='Home') goPage(1);
+  if(e.key==='End') goPage(totPages);
+  if(e.key==='b'||e.key==='B') toggleBookMode();
+  if(e.key==='f'||e.key==='F') setZoom('fit');
+});
+
+// ── INIT ──
+loadST(); updateHome();
+</script>
+</body>
+</html>
